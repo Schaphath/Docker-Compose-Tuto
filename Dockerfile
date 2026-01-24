@@ -1,37 +1,26 @@
-# Image Python 
-FROM python:3.11-slim
+ARG PYTHON_VERSION="3.12"
 
-# Empêche la création de fichiers .pyc et active l'affichage des logs
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+FROM python:${PYTHON_VERSION}-slim
 
-# Définit le dossier de travail 
+LABEL maintainer="Matoki"
+LABEL description="Application pour prédire le cancer de sein"
+
+
 WORKDIR /app
 
-# Crée un utilisateur non-root AVANT d'installer les dépendances
-RUN useradd -m -u 1000 appuser && \
-    chown -R appuser:appuser /app
+COPY requirements-prod.txt .
 
-# Copie les dépendances en tant que root
-COPY --chown=appuser:appuser requirements.txt .
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
-# Passe à l'utilisateur non-root pour l'installation
-USER appuser
+# Copier le reste du code
+COPY app.py .
+COPY models ./models
 
-# Met à jour pip et installe les dépendances
-RUN pip install --user --upgrade pip && \
-    pip install --user --no-cache-dir -r requirements.txt
-
-# Ajoute le répertoire des packages utilisateur au PATH
-ENV PATH=/home/appuser/.local/bin:$PATH
-
-# Copie tout le code de l'application
-COPY --chown=appuser:appuser . .
-
-# Expose le port 8000 (plus standard pour FastAPI)
+# Exposition du port
 EXPOSE 8000
 
-# Lance le serveur FastAPI avec Uvicorn
+# Lancement de l'application
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
+

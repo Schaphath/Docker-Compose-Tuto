@@ -4,4 +4,7 @@ venv/
 .github/
 data/
 notebook/
-models/
+.gitignore
+README.md
+requirements-dev.txt
+LICENSE
