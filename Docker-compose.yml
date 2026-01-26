@@ -1,27 +1,31 @@
-
-version: "3.9"
+version: '3.8'
 
 services:
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: breast_cancer_api
+    container_name: breast-cancer-api
     ports:
       - "8000:8000"
-    volumes:
-      - ./models:/app/models
-    restart: unless-stopped
+    networks:
+      - app-network
 
   streamlit:
     build:
       context: .
       dockerfile: Dockerfile.streamlit
-    container_name: breast_cancer_ui
+    container_name: breast-cancer-streamlit
     ports:
       - "8501:8501"
     environment:
-      API_URL: "http://api:8000/predict"
+      - API_URL=http://api:8000/predict
+    networks:
+      - app-network
     depends_on:
       - api
-    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+    

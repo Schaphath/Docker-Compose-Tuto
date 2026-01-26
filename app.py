@@ -183,6 +183,7 @@ def ready():
     status_code=status.HTTP_200_OK,
     tags=["Prediction"]
 )
+
 def predict(data: InputVars):
     """
     Effectue une prédiction de cancer du sein.

@@ -23,8 +23,7 @@ st.title("🧬 Breast Cancer Prediction App")
 st.markdown(
     """
     <div style="text-align: center;">
-        Cette application permet de prédire la nature d’une tumeur du sein<br>
-        (<strong>bénigne ou maligne</strong>) à partir de caractéristiques cliniques.
+        Cette application calcule la probabilité de développer un cancer du sein.
     </div>
     """,
     unsafe_allow_html=True
@@ -80,7 +79,7 @@ def validate_inputs(data: dict) -> bool:
 # =========================
 st.divider()
 
-if st.button("Lancer la prédiction", use_container_width=True):
+if st.button("Résultats", use_container_width=True):
 
     if not validate_inputs(inputs):
         st.warning("Toutes les valeurs doivent être strictement supérieures à 0.")
@@ -97,7 +96,7 @@ if st.button("Lancer la prédiction", use_container_width=True):
             if response.status_code == 200:
                 result = response.json()
 
-                st.markdown("## 🧬 Résultat de la prédiction")
+                st.markdown("### 🧬 Résultat de la prédiction")
 
                 # Signal visuel selon le diagnostic
                 if "Bénin" in result["label"]:
@@ -126,24 +125,23 @@ if st.button("Lancer la prédiction", use_container_width=True):
                     "ne remplace pas un avis médical."
                 )
 
-                st.info(f"🧠 Modèle utilisé : {result.get('model_version', 'N/A')}")
 
             elif response.status_code == 422:
-                st.error("❌ Données invalides envoyées à l’API")
+                st.error("Données invalides envoyées à l’API")
                 st.json(response.json())
 
             else:
-                st.error("❌ Erreur côté API")
+                st.error("Erreur côté API")
                 st.write(f"Code HTTP : {response.status_code}")
                 st.json(response.json())
 
         except Timeout:
-            st.error("⏱️ L’API ne répond pas (timeout dépassé).")
+            st.error("L’API ne répond pas.")
 
         except RequestException as e:
-            st.error("🌐 Erreur réseau lors de l’appel API")
+            st.error("Erreur réseau lors de l’appel API")
             st.code(str(e))
 
         except Exception as e:
-            st.error("🔥 Erreur inattendue")
+            st.error("Erreur inattendue")
             st.code(str(e))

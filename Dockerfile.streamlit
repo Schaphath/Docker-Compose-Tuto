@@ -1,4 +1,3 @@
-
 # Dockerfile.streamlit
 ARG PYTHON_VERSION="3.12"
 FROM python:${PYTHON_VERSION}-slim
@@ -18,9 +17,9 @@ RUN pip install --upgrade pip \
     && pip install --no-cache-dir -r requirements-streamlit.txt
 
 # Copier le code Streamlit
-COPY Interface/streamlit_app.py .  
+COPY app_stream.py .
 
+# Port standard Streamlit
 EXPOSE 8501
 
-
-CMD ["streamlit", "run", "streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app_stream.py", "--server.port=8501", "--server.address=0.0.0.0"]
