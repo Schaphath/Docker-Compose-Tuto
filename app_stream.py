@@ -1,24 +1,22 @@
+# Packages 
 import os
 import requests
 import streamlit as st
 from requests.exceptions import RequestException, Timeout
 
-# =========================
+
 # Configuration
-# =========================
 API_URL = os.getenv("API_URL", "http://localhost:8000/predict")
 TIMEOUT = 2  # secondes
 
 st.set_page_config(
     page_title="Breast Cancer Prediction",
-    page_icon="🧬",
     layout="centered"
 )
 
-# =========================
-# UI - Header
-# =========================
-st.title("🧬 Breast Cancer Prediction App")
+
+# Header
+st.title("Breast Cancer Prediction App")
 
 st.markdown(
     """
@@ -32,9 +30,8 @@ st.markdown(
 
 st.divider()
 
-# =========================
+
 # Features (ordre strict)
-# =========================
 FEATURES = [
     "radius_mean",
     "texture_mean",
@@ -48,9 +45,8 @@ FEATURES = [
     "fractal_dimension_mean",
 ]
 
-# =========================
+
 # Formulaire
-# =========================
 st.subheader("Paramètres d’entrée")
 
 inputs = {}
@@ -68,15 +64,12 @@ for i, feature in enumerate(FEATURES):
             help=f"Valeur positive requise pour {feature}"
         )
 
-# =========================
+
 # Validation locale
-# =========================
 def validate_inputs(data: dict) -> bool:
     return all(v > 0 for v in data.values())
 
-# =========================
 # Prediction
-# =========================
 st.divider()
 
 if st.button("Résultats", use_container_width=True):
@@ -85,7 +78,7 @@ if st.button("Résultats", use_container_width=True):
         st.warning("Toutes les valeurs doivent être strictement supérieures à 0.")
         st.stop()
 
-    with st.spinner("🔄 Analyse en cours..."):
+    with st.spinner(" Analyse en cours..."):
         try:
             response = requests.post(
                 API_URL,
@@ -96,15 +89,15 @@ if st.button("Résultats", use_container_width=True):
             if response.status_code == 200:
                 result = response.json()
 
-                st.markdown("### 🧬 Résultat de la prédiction")
+                st.markdown("### Résultat de la prédiction")
 
                 # Signal visuel selon le diagnostic
                 if "Bénin" in result["label"]:
-                    st.success("🟢 **Aucune anomalie détectée**")
+                    st.success(" **Aucune anomalie détectée**")
                 else:
-                    st.error("🔴 **Présence probable d’une tumeur maligne**")
+                    st.error(" **Présence probable d’une tumeur maligne**")
 
-                # Affichage centré et lisible
+               
                 st.markdown(
                     f"""
                     <div style="text-align: center; font-size: 1.2rem;">
@@ -120,10 +113,7 @@ if st.button("Résultats", use_container_width=True):
                     unsafe_allow_html=True
                 )
 
-                st.caption(
-                    "⚠️ Cette prédiction est fournie à titre informatif et "
-                    "ne remplace pas un avis médical."
-                )
+                st.caption( " Cette prédiction ne remplace pas un avis médical.")
 
 
             elif response.status_code == 422:
