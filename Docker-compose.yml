@@ -1,31 +1,66 @@
 version: '3.8'
 
 services:
+  # API FastAPI pour prédictions cancer du sein
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: breast-cancer-api
+    container_name: cancer_api_v2
     ports:
       - "8000:8000"
+    volumes:
+      - ./models:/app/models:ro          
+    environment:
+      - PYTHONPATH=/app
     networks:
       - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
 
+  # Interface Streamlit utilisateur
   streamlit:
     build:
       context: .
       dockerfile: Dockerfile.streamlit
-    container_name: breast-cancer-streamlit
+    container_name: cancer_interface_v2
     ports:
       - "8501:8501"
+    volumes:
+      - ./models:/app/models:ro          # Accès modèles si besoin
     environment:
       - API_URL=http://api:8000/predict
+      - PYTHONPATH=/app
     networks:
       - app-network
+    restart: unless-stopped
     depends_on:
-      - api
+      api:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
 
+# Réseau interne dédié
 networks:
   app-network:
+    name: cancer-app-network
     driver: bridge
-    
+
+# Volumes persistants 
+volumes:
+  models_data:
