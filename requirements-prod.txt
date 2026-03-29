@@ -9,5 +9,4 @@ scikit-learn==1.8.0
 # Validation
 pydantic==2.12.5
 
-# Interface 
-streamlit 
+xgboost

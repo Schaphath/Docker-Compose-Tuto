@@ -1,66 +1,93 @@
-version: '3.8'
-
 services:
-  # API FastAPI pour prédictions cancer du sein
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: cancer_db
+    environment:
+      POSTGRES_DB: oncoscan
+      POSTGRES_USER: oncoscan
+      POSTGRES_PASSWORD: oncoscan
+    volumes:
+      - postgres_data:/var/lib/postgresql/data   # persistance des données
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro  # création des tables
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oncoscan -d oncoscan"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API FastAPI
   api:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: cancer_api_v2
+      target: runtime
+    container_name: cancer_sein_api
     ports:
       - "8000:8000"
     volumes:
-      - ./models:/app/models:ro          
+      - ./Save_models:/app/save_models:ro
     environment:
       - PYTHONPATH=/app
     networks:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 15s
     deploy:
       resources:
-        limits:
-          memory: 512M
-        reservations:
-          memory: 256M
+        limits: { memory: 512M }
+        reservations: { memory: 256M }
 
-  # Interface Streamlit utilisateur
+  # Interface Streamlit
   streamlit:
     build:
       context: .
       dockerfile: Dockerfile.streamlit
-    container_name: cancer_interface_v2
+      target: runtime
+    container_name: cancer_interface
     ports:
       - "8501:8501"
-    volumes:
-      - ./models:/app/models:ro          # Accès modèles si besoin
     environment:
       - API_URL=http://api:8000/predict
-      - PYTHONPATH=/app
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=oncoscan
+      - DB_USER=oncoscan
+      - DB_PASSWORD=oncoscan
     networks:
       - app-network
     restart: unless-stopped
     depends_on:
       api:
         condition: service_healthy
+      postgres:
+        condition: service_healthy   
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     deploy:
       resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 512M
+        limits: { memory: 1G }
+        reservations: { memory: 512M }
 
-# Réseau interne dédié
+
 networks:
   app-network:
     name: cancer-app-network
     driver: bridge
 
-# Volumes persistants 
 volumes:
-  models_data:
+  postgres_data: 
+
+  

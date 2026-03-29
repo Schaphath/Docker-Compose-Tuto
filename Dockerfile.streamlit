@@ -1,25 +1,51 @@
-# Dockerfile.streamlit (dans dossier streamlit/)
-ARG PYTHON_VERSION="3.12"
-FROM python:${PYTHON_VERSION}-slim
+# syntax=docker/dockerfile:1.4
 
-LABEL maintainer="@Madiba"
-LABEL description="Front-end pour la prédiction cancer du sein"
+ARG PYTHON_VERSION="3.12"
+
+# ─────────────────────────────────────────
+# ÉTAPE 1 — builder
+# ─────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+WORKDIR /install
+
+COPY requirements-streamlit.txt .
+
+RUN pip install --upgrade pip
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/install/packages \
+                -r requirements-streamlit.txt
+
+
+# ─────────────────────────────────────────
+# ÉTAPE 2 — runtime
+# ─────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim AS runtime
+
+LABEL maintainer="@Madiba" \
+      version="v1.0.0" \
+      description="Interface for breast cancer prediction"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PYTHONUNBUFFERED=1
+
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 WORKDIR /app
 
-# Installer les dépendances Streamlit 
-COPY requirements-streamlit.txt .
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements-streamlit.txt
+COPY --from=builder /install/packages /usr/local
 
-# Copier app_stream.py 
-COPY app_stream.py .
+COPY --chown=appuser:appuser app_stream.py ./app_stream.py
 
-# Port standard Streamlit
+USER appuser
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8501/_stcore/health')" || exit 1
+
 EXPOSE 8501
 
-CMD ["streamlit", "run", "app_stream.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "app_stream.py", \
+     "--server.port=8501", \
+     "--server.address=0.0.0.0", \
+     "--server.headless=true"]

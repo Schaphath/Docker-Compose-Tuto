@@ -1,28 +1,52 @@
-# Dockerfile.api 
-ARG PYTHON_VERSION="3.12"
-FROM python:${PYTHON_VERSION}-slim
+# syntax=docker/dockerfile:1.4
+# Dockerfile.api
 
-LABEL maintainer="@Madiba"
-LABEL description="API pour la prédiction du cancer du sein"
+ARG PYTHON_VERSION="3.12"
+
+# ─────────────────────────────────────────
+# ÉTAPE 1 — builder
+# ─────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+WORKDIR /install
+
+COPY requirements-prod.txt .
+
+RUN pip install --upgrade pip
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install --prefix=/install/packages \
+                -r requirements-prod.txt
+
+
+# ─────────────────────────────────────────
+# ÉTAPE 2 — runtime
+# ─────────────────────────────────────────
+FROM python:${PYTHON_VERSION}-slim AS runtime
+
+LABEL maintainer="@Madiba" \
+      version="v1.0.0" \
+      description="API for breast cancer prediction"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+    PYTHONUNBUFFERED=1
+
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 WORKDIR /app
 
-# Installer les dépendances (depuis le dossier api/)
-COPY requirements-prod.txt .
-RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements-prod.txt
+COPY --from=builder /install/packages /usr/local
 
-# Copier app.py 
-COPY app.py .
+# api.py et non app.py
+COPY --chown=appuser:appuser api.py        ./api.py
+COPY --chown=appuser:appuser Save_models   ./save_models
 
-# Copier les modèles 
-COPY models ./models
+USER appuser
+
+# localhost + /health
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
 EXPOSE 8000
 
-# 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
