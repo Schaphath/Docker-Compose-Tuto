@@ -1,6 +1,6 @@
 
 ##============================================================================================##
-##                           Validation du modèle xgboost                                     ##
+##                           test du modèle xgboost                                     ##
 ##                   Dataset origin : Data/process/cancer_clean.csv                           ##
 ##       Lancer : pytest Tests/test_model.py -v --junitxml=Tests_results/test-results.xml     ##
 ##============================================================================================##
@@ -28,10 +28,10 @@ DATA_PATH   = Path("Data/process/cancer_clean.csv")
 MODELS_DIR  = Path("Save_models")
 
 # Seuils de validation médicale
-SEUIL_RECALL    = 0.90   
+SEUIL_RECALL = 0.90   
 SEUIL_PRECISION = 0.85   
-SEUIL_AUC       = 0.92   
-SEUIL_F1        = 0.88   
+SEUIL_AUC = 0.92   
+SEUIL_F1 = 0.88   
 
 
 # PREREQUIS
