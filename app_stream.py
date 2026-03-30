@@ -4,7 +4,7 @@
 ##=============================================================================##
 
 
-## Application construite à partir d'un prototype et une amélioration avec claude IA.
+## Application construite à partir d'un prototype basique et une amélioration avec claude IA.
 
 
 # PACKAGES
