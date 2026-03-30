@@ -283,8 +283,8 @@ def compare_models(df, target_col='diagnosis', test_size=0.2, random_state=42, s
         print(f"\n{'='*60}")
         print("MODÈLES SAUVEGARDÉS")
         print(f"{'='*60}")
-        print(f"✓ Meilleur modèle : {model_filename}")
-        print(f"✓ Scaler MinMax   : {scaler_filename}")
+        print(f"Meilleur modèle : {model_filename}")
+        print(f"Scaler MinMax   : {scaler_filename}")
         print(f"{'='*60}")
     
     return results_df, fig, fig_learning, model_filename, scaler_filename
