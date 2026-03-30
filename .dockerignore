@@ -9,7 +9,6 @@ venv/
 Tests/
 Tests_results/
 Ressources_docker/
-Test_results/
 .gitignore
 README.md
 historique_saisies.csv
