@@ -1,6 +1,6 @@
 
 ##============================================================================================##
-##                           test du modèle xgboost                                     ##
+##                           test du modèle xgboost                                           ##
 ##                   Dataset origin : Data/process/cancer_clean.csv                           ##
 ##       Lancer : pytest Tests/test_model.py -v --junitxml=Tests_results/test-results.xml     ##
 ##============================================================================================##
